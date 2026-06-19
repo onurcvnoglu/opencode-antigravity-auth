@@ -154,7 +154,7 @@ describe("header routing decision", () => {
     });
   });
 
-  it("keeps explicit antigravity prefix as primary route while fallback remains available", () => {
+  it("keeps explicit antigravity prefix on Antigravity only", () => {
     const decision = resolveHeaderRoutingDecision?.(
       "https://generativelanguage.googleapis.com/v1beta/models/antigravity-gemini-3-flash:streamGenerateContent",
       "gemini",
@@ -167,7 +167,7 @@ describe("header routing decision", () => {
       cliFirst: true,
       preferredHeaderStyle: "antigravity",
       explicitQuota: true,
-      allowQuotaFallback: true,
+      allowQuotaFallback: false,
     });
   });
 

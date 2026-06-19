@@ -1,4 +1,4 @@
-# Antigravity + Gemini CLI OAuth Plugin for Opencode
+# Antigravity OAuth Plugin for Opencode
 
 [![npm version](https://img.shields.io/npm/v/%40onrcvndev%2Fauth-code-gravity.svg)](https://www.npmjs.com/package/@onrcvndev/auth-code-gravity)
 [![npm beta](https://img.shields.io/npm/v/%40onrcvndev%2Fauth-code-gravity/beta.svg?label=beta)](https://www.npmjs.com/package/@onrcvndev/auth-code-gravity)
@@ -12,7 +12,7 @@ Enable Opencode to authenticate against **Antigravity** (Google's IDE) via OAuth
 
 - **Claude Opus 4.6, Sonnet 4.6** and **Gemini 3.1 Pro/Flash** via Google OAuth
 - **Multi-account support** — add multiple Google accounts, auto-rotates when rate-limited
-- **Dual quota system** — access both Antigravity and Gemini CLI quotas from one plugin
+- **Antigravity-only model config** — OpenCode model picker is kept to `antigravity-*` models
 - **Thinking models** — extended thinking for Claude and Gemini 3 with configurable budgets
 - **Google Search grounding** — enable web search for Gemini models (auto or always-on)
 - **Auto-recovery** — handles session errors and tool failures automatically
@@ -108,7 +108,7 @@ opencode run "Hello" --model=google/antigravity-claude-opus-4-6-thinking --varia
 
 ### Model Reference
 
-**Antigravity quota** (default routing for Claude and Gemini):
+**Antigravity quota** (configured models):
 
 | Model | Variants | Notes |
 |-------|----------|-------|
@@ -119,24 +119,11 @@ opencode run "Hello" --model=google/antigravity-claude-opus-4-6-thinking --varia
 | `antigravity-claude-sonnet-4-6` | — | Claude Sonnet 4.6 |
 | `antigravity-claude-opus-4-6-thinking` | low, max | Claude Opus 4.6 with extended thinking |
 
-**Gemini CLI quota** (separate from Antigravity; used when `cli_first` is true or as fallback):
-
-| Model | Notes |
-|-------|-------|
-| `gemini-2.5-flash` | Gemini 2.5 Flash |
-| `gemini-2.5-pro` | Gemini 2.5 Pro |
-| `gemini-3-flash-preview` | Gemini 3 Flash (preview) |
-| `gemini-3-pro-preview` | Gemini 3 Pro (preview) |
-| `gemini-3.1-pro-preview` | Gemini 3.1 Pro (preview, rollout-dependent) |
-| `gemini-3.1-pro-preview-customtools` | Gemini 3.1 Pro Preview Custom Tools (preview, rollout-dependent) |
-| `gemini-3.5-flash-preview` | Gemini 3.5 Flash (preview) |
-
 > **Routing Behavior:**
-> - **Antigravity-first (default):** Gemini models use Antigravity quota across accounts.
-> - **CLI-first (`cli_first: true`):** Gemini models use Gemini CLI quota first.
-> - When a Gemini quota pool is exhausted, the plugin automatically falls back to the other pool.
+> - The auto-configured OpenCode model list contains only `antigravity-*` models.
+> - Explicit `antigravity-*` models stay on Antigravity quota and do not fall back to Gemini CLI.
+> - Prefixless Gemini model names are still supported for backward compatibility and can use Gemini CLI routing.
 > - Claude and image models always use Antigravity.
-> Model names are automatically transformed for the target API (e.g., `antigravity-gemini-3-flash` → `gemini-3-flash-preview` for CLI).
 
 **Using variants:**
 ```bash
@@ -209,41 +196,6 @@ Add this to your `~/.config/opencode/config.json`:
             "low": { "thinkingConfig": { "thinkingBudget": 8192 } },
             "max": { "thinkingConfig": { "thinkingBudget": 32768 } }
           }
-        },
-        "gemini-2.5-flash": {
-          "name": "Gemini 2.5 Flash (Gemini CLI)",
-          "limit": { "context": 1048576, "output": 65536 },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
-        },
-        "gemini-2.5-pro": {
-          "name": "Gemini 2.5 Pro (Gemini CLI)",
-          "limit": { "context": 1048576, "output": 65536 },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
-        },
-        "gemini-3-flash-preview": {
-          "name": "Gemini 3 Flash Preview (Gemini CLI)",
-          "limit": { "context": 1048576, "output": 65536 },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
-        },
-        "gemini-3-pro-preview": {
-          "name": "Gemini 3 Pro Preview (Gemini CLI)",
-          "limit": { "context": 1048576, "output": 65535 },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
-        },
-        "gemini-3.1-pro-preview": {
-          "name": "Gemini 3.1 Pro Preview (Gemini CLI)",
-          "limit": { "context": 1048576, "output": 65535 },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
-        },
-        "gemini-3.1-pro-preview-customtools": {
-          "name": "Gemini 3.1 Pro Preview Custom Tools (Gemini CLI)",
-          "limit": { "context": 1048576, "output": 65535 },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
-        },
-        "gemini-3.5-flash-preview": {
-          "name": "Gemini 3.5 Flash Preview (Gemini CLI)",
-          "limit": { "context": 1048576, "output": 65536 },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
         }
       }
     }
@@ -251,7 +203,7 @@ Add this to your `~/.config/opencode/config.json`:
 }
 ```
 
-> **Backward Compatibility:** Legacy model names with `antigravity-` prefix (e.g., `antigravity-gemini-3-flash`) still work. The plugin automatically handles model name transformation for both Antigravity and Gemini CLI APIs.
+> **Backward Compatibility:** Prefixless Gemini model names still work for manual configs, but the recommended OpenCode model list is Antigravity-only.
 
 </details>
 
@@ -610,7 +562,7 @@ Most users don't need to configure anything — defaults work well.
 |--------|---------|--------------
 | `keep_thinking` | `false` | Preserve Claude's thinking across turns. **Warning:** enabling may degrade model stability. |
 | `session_recovery` | `true` | Auto-recover from tool errors |
-| `cli_first` | `false` | Route Gemini models to Gemini CLI first (Claude and image models stay on Antigravity). |
+| `cli_first` | `false` | Route prefixless Gemini models to Gemini CLI first. Explicit `antigravity-*` models stay on Antigravity. |
 
 ### Account Rotation
 

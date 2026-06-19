@@ -117,6 +117,13 @@ describe("resolveModelWithTier", () => {
       expect(result.quotaPreference).toBe("antigravity");
     });
 
+    it("antigravity-gemini-3.5-flash gets the default API tier", () => {
+      const result = resolveModelWithTier("antigravity-gemini-3.5-flash");
+      expect(result.actualModel).toBe("gemini-3.5-flash-low");
+      expect(result.thinkingLevel).toBe("low");
+      expect(result.quotaPreference).toBe("antigravity");
+    });
+
     it("antigravity-gemini-3.1-pro gets default -low model", () => {
       const result = resolveModelWithTier("antigravity-gemini-3.1-pro");
       expect(result.actualModel).toBe("gemini-3.1-pro-low");
@@ -240,6 +247,15 @@ describe("resolveModelWithVariant", () => {
       });
       expect(result.actualModel).toBe("gemini-3.5-flash-extra-low");
       expect(result.thinkingLevel).toBe("low");
+      expect(result.configSource).toBe("variant");
+    });
+
+    it("keeps Gemini 3.5 Flash variant override on API-tiered names", () => {
+      const result = resolveModelWithVariant("gemini-3.5-flash-low", {
+        thinkingLevel: "medium",
+      });
+      expect(result.actualModel).toBe("gemini-3.5-flash-low");
+      expect(result.thinkingLevel).toBe("medium");
       expect(result.configSource).toBe("variant");
     });
 

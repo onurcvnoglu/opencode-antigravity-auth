@@ -271,17 +271,19 @@ export const AntigravityConfigSchema = z.object({
   /**
    * @deprecated Kept only for backward compatibility.
    * This flag is ignored at runtime.
-   * Gemini requests always fall back between Antigravity and Gemini CLI quotas.
+   * Prefixless Gemini requests can fall back between Antigravity and Gemini CLI quotas.
+   * Explicit antigravity-* models stay on Antigravity only.
    *
    * @default false
    */
   quota_fallback: z.boolean().default(false),
 
   /**
-   * Prefer gemini-cli routing before Antigravity for Gemini models.
+   * Prefer gemini-cli routing before Antigravity for prefixless Gemini models.
    * 
-   * When false (default): Antigravity is tried first, then gemini-cli.
-   * When true: gemini-cli is tried first, then Antigravity.
+   * When false (default): prefixless Gemini models try Antigravity first, then gemini-cli.
+   * When true: prefixless Gemini models try gemini-cli first, then Antigravity.
+   * Explicit antigravity-* models always use Antigravity only.
    * 
    * @default false
    */

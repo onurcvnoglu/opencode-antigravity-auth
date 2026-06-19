@@ -1048,6 +1048,18 @@ it("removes x-api-key header", () => {
         expect(result.effectiveModel).toBe("gemini-3.5-flash-low");
       });
 
+      it("transforms antigravity-gemini-3.5-flash to gemini-3.5-flash-low for antigravity headerStyle", () => {
+        const result = prepareAntigravityRequest(
+          "https://generativelanguage.googleapis.com/v1beta/models/antigravity-gemini-3.5-flash:generateContent",
+          { method: "POST", body: JSON.stringify({ contents: [] }) },
+          mockAccessToken,
+          mockProjectId,
+          undefined,
+          "antigravity"
+        );
+        expect(result.effectiveModel).toBe("gemini-3.5-flash-low");
+      });
+
       it("transforms gemini-3-pro-preview to gemini-3-pro-low for antigravity headerStyle", () => {
         const result = prepareAntigravityRequest(
           "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-preview:generateContent",

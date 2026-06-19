@@ -64,6 +64,8 @@ const TIER_REGEX = /-(minimal|low|medium|high)$/;
 const QUOTA_PREFIX_REGEX = /^antigravity-/i;
 const GEMINI_3_PRO_REGEX = /^gemini-3(?:\.\d+)?-pro/i;
 const GEMINI_3_FLASH_REGEX = /^gemini-3(?:\.\d+)?-flash/i;
+const GEMINI_35_FLASH_REGEX = /^gemini-3\.5-flash$/i;
+const GEMINI_35_FLASH_API_TIER_REGEX = /-(extra-low|low|medium|high)$/i;
 
 // ANTIGRAVITY_ONLY_MODELS removed - all models now default to antigravity
 
@@ -138,6 +140,16 @@ function isGemini3FlashModel(model: string): boolean {
   return GEMINI_3_FLASH_REGEX.test(model);
 }
 
+function resolveGemini35FlashApiModel(model: string, level?: ThinkingTier | string): string {
+  const baseModel = model.replace(GEMINI_35_FLASH_API_TIER_REGEX, "");
+  if (!GEMINI_35_FLASH_REGEX.test(baseModel)) {
+    return model;
+  }
+
+  const apiLevel = level === "low" || level === "minimal" ? "extra-low" : "low";
+  return `${baseModel}-${apiLevel}`;
+}
+
 /**
  * Resolves a model name with optional tier suffix and quota prefix to its actual API model name
  * and corresponding thinking configuration.
@@ -197,12 +209,7 @@ export function resolveModelWithTier(requestedModel: string, options: ModelResol
     ? antigravityModel
     : MODEL_ALIASES[modelWithoutQuota] || MODEL_ALIASES[baseName] || baseName;
 
-  let resolvedModel = actualModel;
-
-  if (resolvedModel === "gemini-3.5-flash" || resolvedModel === "antigravity-gemini-3.5-flash") {
-    const mappedLevel = (tier === "low" || tier === "minimal") ? "extra-low" : "low";
-    resolvedModel = `gemini-3.5-flash-${mappedLevel}`;
-  }
+  let resolvedModel = resolveGemini35FlashApiModel(actualModel, tier);
 
   const isThinking = isThinkingCapableModel(resolvedModel);
 
@@ -402,9 +409,7 @@ export function resolveModelWithVariant(
       const baseModel = base.actualModel.replace(/-(low|medium|high)$/, "");
       actualModel = `${baseModel}-${level}`;
     } else if (actualModel.toLowerCase().includes("gemini-3.5-flash")) {
-      const baseModel = actualModel.replace(/-(low|extra-low|medium|high)$/, "");
-      const mappedLevel = (level === "low" || level === "minimal") ? "extra-low" : "low";
-      actualModel = `${baseModel}-${mappedLevel}`;
+      actualModel = resolveGemini35FlashApiModel(actualModel, level);
     }
 
     return {

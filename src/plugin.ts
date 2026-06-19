@@ -3411,7 +3411,7 @@ function resolveHeaderRoutingDecision(
     cliFirst,
     preferredHeaderStyle,
     explicitQuota,
-    allowQuotaFallback: family === "gemini",
+    allowQuotaFallback: family === "gemini" && !explicitQuota,
   };
 }
 
