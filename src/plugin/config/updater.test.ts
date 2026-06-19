@@ -66,7 +66,7 @@ describe("updateOpencodeConfig", () => {
     // Old model should be replaced
     expect(writtenConfig.provider.google.models["old-model"]).toBeUndefined();
     // New models should be present
-    expect(writtenConfig.provider.google.models["antigravity-gemini-3-pro"]).toBeDefined();
+    expect(writtenConfig.provider.google.models["antigravity-gemini-3.1-pro"]).toBeDefined();
     expect(writtenConfig.provider.google.models["antigravity-claude-sonnet-4-6"]).toBeDefined();
   });
 
@@ -252,7 +252,7 @@ describe("updateOpencodeConfig", () => {
     expect(writtenConfig.plugin).toContain("other-plugin");
     expect(writtenConfig.plugin).toContain("@onrcvndev/auth-code-gravity@latest");
     expect(writtenConfig.provider.google.region).toBe("us-central1");
-    expect(writtenConfig.provider.google.models["antigravity-gemini-3-pro"]).toBeDefined();
+    expect(writtenConfig.provider.google.models["antigravity-gemini-3.1-pro"]).toBeDefined();
   });
 
   test("prefers existing config.json when using default config path", async () => {

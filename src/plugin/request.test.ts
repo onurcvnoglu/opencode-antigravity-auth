@@ -1036,7 +1036,7 @@ it("removes x-api-key header", () => {
         expect(result.effectiveModel).toBe("gemini-3-flash");
       });
 
-      it("transforms gemini-3.5-flash-preview to gemini-3.5-flash for antigravity headerStyle", () => {
+      it("transforms gemini-3.5-flash-preview to gemini-3.5-flash-low for antigravity headerStyle", () => {
         const result = prepareAntigravityRequest(
           "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-preview:generateContent",
           { method: "POST", body: JSON.stringify({ contents: [] }) },
@@ -1045,7 +1045,7 @@ it("removes x-api-key header", () => {
           undefined,
           "antigravity"
         );
-        expect(result.effectiveModel).toBe("gemini-3.5-flash");
+        expect(result.effectiveModel).toBe("gemini-3.5-flash-low");
       });
 
       it("transforms gemini-3-pro-preview to gemini-3-pro-low for antigravity headerStyle", () => {

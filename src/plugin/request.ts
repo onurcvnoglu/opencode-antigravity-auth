@@ -918,27 +918,17 @@ export function prepareAntigravityRequest(
           requestPayload.providerOptions as Record<string, unknown> | undefined,
           rawGenerationConfig
         );
+
+        if (variantConfig) {
+          const resolvedWithVariant = resolveModelWithVariant(effectiveModel, variantConfig);
+          effectiveModel = resolvedWithVariant.actualModel;
+          tierThinkingBudget = resolvedWithVariant.thinkingBudget;
+          tierThinkingLevel = resolvedWithVariant.thinkingLevel;
+        }
+
         const isGemini3 = effectiveModel.toLowerCase().includes("gemini-3");
 
         log.debug(`[ThinkingResolution] rawModel=${rawModel} resolvedModel=${effectiveModel} resolvedTier=${tierThinkingLevel ?? "none"} variantLevel=${variantConfig?.thinkingLevel ?? "none"} variantBudget=${variantConfig?.thinkingBudget ?? "none"} providerOptions.google=${JSON.stringify((requestPayload.providerOptions as any)?.google ?? null)} generationConfig.thinkingConfig=${JSON.stringify((rawGenerationConfig as any)?.thinkingConfig ?? null)}`);
-
-        if (variantConfig?.thinkingLevel && isGemini3) {
-          // Gemini 3 native format - use thinkingLevel directly
-          tierThinkingLevel = variantConfig.thinkingLevel;
-          tierThinkingBudget = undefined;
-        } else if (variantConfig?.thinkingBudget) {
-          if (isGemini3) {
-            // Legacy format for Gemini 3 - convert with deprecation warning
-            log.warn("[Deprecated] Using thinkingBudget for Gemini 3 model. Use thinkingLevel instead.");
-            tierThinkingLevel = variantConfig.thinkingBudget <= 8192 ? "low"
-              : variantConfig.thinkingBudget <= 16384 ? "medium" : "high";
-            tierThinkingBudget = undefined;
-          } else {
-            // Claude / Gemini 2.5 - use budget directly
-            tierThinkingBudget = variantConfig.thinkingBudget;
-            tierThinkingLevel = undefined;
-          }
-        }
 
         if (isClaude) {
           if (!requestPayload.toolConfig) {

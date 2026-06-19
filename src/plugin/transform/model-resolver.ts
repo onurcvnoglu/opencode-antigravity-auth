@@ -40,8 +40,6 @@ export const GEMINI_3_THINKING_LEVELS = ["minimal", "low", "medium", "high"] as 
 export const MODEL_ALIASES: Record<string, string> = {
   // Gemini 3 variants - for Gemini CLI only (tier stripped, thinkingLevel used)
   // For Antigravity, these are bypassed and full model name is kept
-  "gemini-3-pro-low": "gemini-3-pro",
-  "gemini-3-pro-high": "gemini-3-pro",
   "gemini-3.1-pro-low": "gemini-3.1-pro",
   "gemini-3.1-pro-high": "gemini-3.1-pro",
   "gemini-3-flash-low": "gemini-3-flash",
@@ -199,7 +197,12 @@ export function resolveModelWithTier(requestedModel: string, options: ModelResol
     ? antigravityModel
     : MODEL_ALIASES[modelWithoutQuota] || MODEL_ALIASES[baseName] || baseName;
 
-  const resolvedModel = actualModel;
+  let resolvedModel = actualModel;
+
+  if (resolvedModel === "gemini-3.5-flash" || resolvedModel === "antigravity-gemini-3.5-flash") {
+    const mappedLevel = (tier === "low" || tier === "minimal") ? "extra-low" : "low";
+    resolvedModel = `gemini-3.5-flash-${mappedLevel}`;
+  }
 
   const isThinking = isThinkingCapableModel(resolvedModel);
 
@@ -257,7 +260,8 @@ export function resolveModelWithTier(requestedModel: string, options: ModelResol
 
   const budgetFamily = getBudgetFamily(resolvedModel);
   const budgets = THINKING_TIER_BUDGETS[budgetFamily];
-  const thinkingBudget = budgets[tier];
+  const budgetKey = tier === "minimal" ? "low" as const : tier;
+  const thinkingBudget = budgets[budgetKey];
 
   return {
     actualModel: resolvedModel,
@@ -288,6 +292,8 @@ export function getModelFamily(model: string): "claude" | "gemini-flash" | "gemi
  */
 export interface VariantConfig {
   thinkingBudget?: number;
+  thinkingLevel?: string;
+  includeThoughts?: boolean;
   googleSearch?: GoogleSearchConfig;
 }
 
@@ -379,15 +385,15 @@ export function resolveModelWithVariant(
     base.configSource = "variant";
   }
 
-  if (!variantConfig.thinkingBudget) {
+  if (!variantConfig.thinkingBudget && !variantConfig.thinkingLevel) {
     return base;
   }
 
   const budget = variantConfig.thinkingBudget;
+  const level = variantConfig.thinkingLevel || (budget ? budgetToGemini3Level(budget) : undefined);
   const isGemini3 = base.actualModel.toLowerCase().includes("gemini-3");
 
-  if (isGemini3) {
-    const level = budgetToGemini3Level(budget);
+  if (isGemini3 && level) {
     const isAntigravityGemini3Pro = base.quotaPreference === "antigravity" &&
       isGemini3ProModel(base.actualModel);
 
@@ -395,6 +401,10 @@ export function resolveModelWithVariant(
     if (isAntigravityGemini3Pro) {
       const baseModel = base.actualModel.replace(/-(low|medium|high)$/, "");
       actualModel = `${baseModel}-${level}`;
+    } else if (actualModel.toLowerCase().includes("gemini-3.5-flash")) {
+      const baseModel = actualModel.replace(/-(low|extra-low|medium|high)$/, "");
+      const mappedLevel = (level === "low" || level === "minimal") ? "extra-low" : "low";
+      actualModel = `${baseModel}-${mappedLevel}`;
     }
 
     return {
