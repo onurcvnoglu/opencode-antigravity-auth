@@ -111,6 +111,13 @@ describe("resolveModelWithTier", () => {
       expect(result.thinkingLevel).toBe("medium");
     });
 
+    it("antigravity-gemini-3.5-flash-medium gets thinkingLevel from tier", () => {
+      const result = resolveModelWithTier("antigravity-gemini-3.5-flash-medium");
+      expect(result.actualModel).toBe("gemini-3.5-flash");
+      expect(result.thinkingLevel).toBe("medium");
+      expect(result.quotaPreference).toBe("antigravity");
+    });
+
     it("antigravity-gemini-3.1-pro gets default -low model", () => {
       const result = resolveModelWithTier("antigravity-gemini-3.1-pro");
       expect(result.actualModel).toBe("gemini-3.1-pro-low");
@@ -267,6 +274,12 @@ describe("Issue #103: resolveModelForHeaderStyle", () => {
       expect(result.quotaPreference).toBe("antigravity");
     });
 
+    it("transforms gemini-3.5-flash-preview to gemini-3.5-flash for antigravity", () => {
+      const result = resolveModelForHeaderStyle("gemini-3.5-flash-preview", "antigravity");
+      expect(result.actualModel).toBe("gemini-3.5-flash");
+      expect(result.quotaPreference).toBe("antigravity");
+    });
+
     it("transforms gemini-3-pro-preview to gemini-3-pro-low for antigravity", () => {
       const result = resolveModelForHeaderStyle("gemini-3-pro-preview", "antigravity");
       expect(result.actualModel).toBe("gemini-3-pro-low");
@@ -290,6 +303,12 @@ describe("Issue #103: resolveModelForHeaderStyle", () => {
     it("transforms gemini-3-flash to gemini-3-flash-preview for gemini-cli", () => {
       const result = resolveModelForHeaderStyle("gemini-3-flash", "gemini-cli");
       expect(result.actualModel).toBe("gemini-3-flash-preview");
+      expect(result.quotaPreference).toBe("gemini-cli");
+    });
+
+    it("transforms gemini-3.5-flash to gemini-3.5-flash-preview for gemini-cli", () => {
+      const result = resolveModelForHeaderStyle("gemini-3.5-flash", "gemini-cli");
+      expect(result.actualModel).toBe("gemini-3.5-flash-preview");
       expect(result.quotaPreference).toBe("gemini-cli");
     });
 

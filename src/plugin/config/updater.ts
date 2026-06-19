@@ -41,10 +41,26 @@ export interface UpdateConfigOptions {
 // Constants
 // =============================================================================
 
-const PLUGIN_NAME = "opencode-antigravity-auth@latest";
+const PACKAGE_NAME = "@onrcvndev/auth-code-gravity";
+const LEGACY_PACKAGE_NAME = "opencode-antigravity-auth";
+const PLUGIN_NAME = `${PACKAGE_NAME}@latest`;
 const SCHEMA_URL = "https://opencode.ai/config.json";
+const CONFIG_JSON_FILENAME = "config.json";
 const OPENCODE_JSON_FILENAME = "opencode.json";
 const OPENCODE_JSONC_FILENAME = "opencode.jsonc";
+
+function isPluginEntry(entry: string): boolean {
+  return (
+    entry === PACKAGE_NAME ||
+    entry.startsWith(`${PACKAGE_NAME}@`) ||
+    entry === LEGACY_PACKAGE_NAME ||
+    entry.startsWith(`${LEGACY_PACKAGE_NAME}@`)
+  );
+}
+
+function isLegacyPluginEntry(entry: string): boolean {
+  return entry === LEGACY_PACKAGE_NAME || entry.startsWith(`${LEGACY_PACKAGE_NAME}@`);
+}
 
 function stripJsonCommentsAndTrailingCommas(json: string): string {
   return json
@@ -71,9 +87,13 @@ export function getOpencodeConfigDir(): string {
  */
 export function getOpencodeConfigPath(): string {
   const configDir = getOpencodeConfigDir();
+  const configJsonPath = join(configDir, CONFIG_JSON_FILENAME);
   const jsoncPath = join(configDir, OPENCODE_JSONC_FILENAME);
   const jsonPath = join(configDir, OPENCODE_JSON_FILENAME);
 
+  if (existsSync(configJsonPath)) {
+    return configJsonPath;
+  }
   if (existsSync(jsoncPath)) {
     return jsoncPath;
   }
@@ -135,12 +155,15 @@ export async function updateOpencodeConfig(
       config.plugin = [];
     }
 
-    // Check if plugin is already in the list (any version)
-    const hasPlugin = config.plugin.some((p) =>
-      p.includes("opencode-antigravity-auth")
-    );
-    if (!hasPlugin) {
+    // Check if plugin is already in the list (any version), and migrate forked installs.
+    const pluginIndex = config.plugin.findIndex(isPluginEntry);
+    if (pluginIndex === -1) {
       config.plugin.push(PLUGIN_NAME);
+    } else {
+      const existingPlugin = config.plugin[pluginIndex];
+      if (existingPlugin && isLegacyPluginEntry(existingPlugin)) {
+        config.plugin[pluginIndex] = PLUGIN_NAME;
+      }
     }
 
     // Ensure provider.google structure exists

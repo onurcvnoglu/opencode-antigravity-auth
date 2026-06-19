@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import type { NpmDistTags, OpencodeConfig, PackageJson, UpdateCheckResult } from "./types";
 import {
   PACKAGE_NAME,
+  LEGACY_PACKAGE_NAME,
   NPM_REGISTRY_URL,
   NPM_FETCH_TIMEOUT,
   INSTALLED_PACKAGE_JSON,
@@ -11,6 +12,27 @@ import {
   USER_OPENCODE_CONFIG_JSONC,
 } from "./constants";
 import { logAutoUpdate } from "./logging";
+
+function getEntryPackageName(entry: string): string | null {
+  if (entry === PACKAGE_NAME || entry.startsWith(`${PACKAGE_NAME}@`)) {
+    return PACKAGE_NAME;
+  }
+  if (entry === LEGACY_PACKAGE_NAME || entry.startsWith(`${LEGACY_PACKAGE_NAME}@`)) {
+    return LEGACY_PACKAGE_NAME;
+  }
+  return null;
+}
+
+function isKnownLocalDevEntry(entry: string): boolean {
+  return (
+    entry.startsWith("file://") &&
+    (
+      entry.includes(PACKAGE_NAME) ||
+      entry.includes("auth-code-gravity") ||
+      entry.includes(LEGACY_PACKAGE_NAME)
+    )
+  );
+}
 
 export function isLocalDevMode(directory: string): boolean {
   return getLocalDevPath(directory) !== null;
@@ -41,7 +63,7 @@ export function getLocalDevPath(directory: string): string | null {
       const plugins = config.plugin ?? [];
 
       for (const entry of plugins) {
-        if (entry.startsWith("file://") && entry.includes(PACKAGE_NAME)) {
+        if (isKnownLocalDevEntry(entry)) {
           try {
             return fileURLToPath(entry);
           } catch {
@@ -114,15 +136,16 @@ export function findPluginEntry(directory: string): PluginEntryInfo | null {
       const plugins = config.plugin ?? [];
 
       for (const entry of plugins) {
-        if (entry === PACKAGE_NAME) {
+        const entryPackageName = getEntryPackageName(entry);
+        if (entryPackageName && entry === entryPackageName) {
           return { entry, isPinned: false, pinnedVersion: null, configPath };
         }
-        if (entry.startsWith(`${PACKAGE_NAME}@`)) {
-          const pinnedVersion = entry.slice(PACKAGE_NAME.length + 1);
+        if (entryPackageName && entry.startsWith(`${entryPackageName}@`)) {
+          const pinnedVersion = entry.slice(entryPackageName.length + 1);
           const isPinned = pinnedVersion !== "latest";
           return { entry, isPinned, pinnedVersion: isPinned ? pinnedVersion : null, configPath };
         }
-        if (entry.startsWith("file://") && entry.includes(PACKAGE_NAME)) {
+        if (isKnownLocalDevEntry(entry)) {
           return { entry, isPinned: false, pinnedVersion: null, configPath };
         }
       }

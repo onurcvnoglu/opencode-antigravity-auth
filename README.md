@@ -1,8 +1,8 @@
 # Antigravity + Gemini CLI OAuth Plugin for Opencode
 
-[![npm version](https://img.shields.io/npm/v/opencode-antigravity-auth.svg)](https://www.npmjs.com/package/opencode-antigravity-auth)
-[![npm beta](https://img.shields.io/npm/v/opencode-antigravity-auth/beta.svg?label=beta)](https://www.npmjs.com/package/opencode-antigravity-auth)
-[![npm downloads](https://img.shields.io/npm/dw/opencode-antigravity-auth.svg)](https://www.npmjs.com/package/opencode-antigravity-auth)
+[![npm version](https://img.shields.io/npm/v/%40onrcvndev%2Fauth-code-gravity.svg)](https://www.npmjs.com/package/@onrcvndev/auth-code-gravity)
+[![npm beta](https://img.shields.io/npm/v/%40onrcvndev%2Fauth-code-gravity/beta.svg?label=beta)](https://www.npmjs.com/package/@onrcvndev/auth-code-gravity)
+[![npm downloads](https://img.shields.io/npm/dw/%40onrcvndev%2Fauth-code-gravity.svg)](https://www.npmjs.com/package/@onrcvndev/auth-code-gravity)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![X (Twitter)](https://img.shields.io/badge/X-@dopesalmon-000000?style=flat&logo=x)](https://x.com/dopesalmon)
 
@@ -46,20 +46,20 @@ Enable Opencode to authenticate against **Antigravity** (Google's IDE) via OAuth
 Paste this into any LLM agent (Claude Code, OpenCode, Cursor, etc.):
 
 ```
-Install the opencode-antigravity-auth plugin and add the Antigravity model definitions to ~/.config/opencode/opencode.json by following: https://raw.githubusercontent.com/NoeFabris/opencode-antigravity-auth/dev/README.md
+Install the @onrcvndev/auth-code-gravity plugin and add the Antigravity model definitions to ~/.config/opencode/config.json by following: https://raw.githubusercontent.com/onrcvndev/auth-code-gravity/dev/README.md
 ```
 
 **Option B: Manual setup**
 
-1. **Add the plugin** to `~/.config/opencode/opencode.json`:
+1. **Add the plugin** to `~/.config/opencode/config.json`:
 
    ```json
    {
-     "plugin": ["opencode-antigravity-auth@latest"]
+     "plugin": ["@onrcvndev/auth-code-gravity@latest"]
    }
    ```
 
-   > Want bleeding-edge features? Use `opencode-antigravity-auth@beta` instead.
+   > Want bleeding-edge features? Use `@onrcvndev/auth-code-gravity@beta` instead.
 
 2. **Login** with your Google account:
 
@@ -84,7 +84,7 @@ Install the opencode-antigravity-auth plugin and add the Antigravity model defin
 
 ### Step-by-Step Instructions
 
-1. Edit the OpenCode configuration file at `~/.config/opencode/opencode.json`
+1. Edit the OpenCode configuration file at `~/.config/opencode/config.json`
    
    > **Note**: This path works on all platforms. On Windows, `~` resolves to your user home directory (e.g., `C:\Users\YourName`).
 
@@ -115,6 +115,7 @@ opencode run "Hello" --model=google/antigravity-claude-opus-4-6-thinking --varia
 | `antigravity-gemini-3-pro` | low, high | Gemini 3 Pro with thinking |
 | `antigravity-gemini-3.1-pro` | low, high | Gemini 3.1 Pro with thinking (rollout-dependent) |
 | `antigravity-gemini-3-flash` | minimal, low, medium, high | Gemini 3 Flash with thinking |
+| `antigravity-gemini-3.5-flash` | low, medium, high | Gemini 3.5 Flash with thinking |
 | `antigravity-claude-sonnet-4-6` | — | Claude Sonnet 4.6 |
 | `antigravity-claude-opus-4-6-thinking` | low, max | Claude Opus 4.6 with extended thinking |
 
@@ -128,6 +129,7 @@ opencode run "Hello" --model=google/antigravity-claude-opus-4-6-thinking --varia
 | `gemini-3-pro-preview` | Gemini 3 Pro (preview) |
 | `gemini-3.1-pro-preview` | Gemini 3.1 Pro (preview, rollout-dependent) |
 | `gemini-3.1-pro-preview-customtools` | Gemini 3.1 Pro Preview Custom Tools (preview, rollout-dependent) |
+| `gemini-3.5-flash-preview` | Gemini 3.5 Flash (preview) |
 
 > **Routing Behavior:**
 > - **Antigravity-first (default):** Gemini models use Antigravity quota across accounts.
@@ -146,12 +148,12 @@ For details on variant configuration and thinking levels, see [docs/MODEL-VARIAN
 <details>
 <summary><b>Full models configuration (copy-paste ready)</b></summary>
 
-Add this to your `~/.config/opencode/opencode.json`:
+Add this to your `~/.config/opencode/config.json`:
 
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["opencode-antigravity-auth@latest"],
+  "plugin": ["@onrcvndev/auth-code-gravity@latest"],
   "provider": {
     "google": {
       "models": {
@@ -179,6 +181,16 @@ Add this to your `~/.config/opencode/opencode.json`:
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
           "variants": {
             "minimal": { "thinkingLevel": "minimal" },
+            "low": { "thinkingLevel": "low" },
+            "medium": { "thinkingLevel": "medium" },
+            "high": { "thinkingLevel": "high" }
+          }
+        },
+        "antigravity-gemini-3.5-flash": {
+          "name": "Gemini 3.5 Flash (Antigravity)",
+          "limit": { "context": 1048576, "output": 65536 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "variants": {
             "low": { "thinkingLevel": "low" },
             "medium": { "thinkingLevel": "medium" },
             "high": { "thinkingLevel": "high" }
@@ -226,6 +238,11 @@ Add this to your `~/.config/opencode/opencode.json`:
         "gemini-3.1-pro-preview-customtools": {
           "name": "Gemini 3.1 Pro Preview Custom Tools (Gemini CLI)",
           "limit": { "context": 1048576, "output": 65535 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "gemini-3.5-flash-preview": {
+          "name": "Gemini 3.5 Flash Preview (Gemini CLI)",
+          "limit": { "context": 1048576, "output": 65536 },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
         }
       }
@@ -358,7 +375,7 @@ Invalid JSON payload received. Unknown name "parameters" at 'request.tools[0]'
 **Solutions:**
 1. **Update to latest beta:**
    ```json
-   { "plugin": ["opencode-antigravity-auth@beta"] }
+   { "plugin": ["@onrcvndev/auth-code-gravity@beta"] }
    ```
 
 2. **Disable MCP servers** one-by-one to find the problematic one
@@ -389,7 +406,7 @@ This usually means an MCP tool name starts with a number (for example, a 1mcp ke
 **Diagnosis:**
 1. Disable all MCP servers in your config
 2. Enable one-by-one until error reappears
-3. Report the specific MCP in a [GitHub issue](https://github.com/NoeFabris/opencode-antigravity-auth/issues)
+3. Report the specific MCP in a [GitHub issue](https://github.com/onrcvndev/auth-code-gravity/issues)
 
 ---
 
@@ -517,7 +534,7 @@ The correct key is `plugin` (singular):
 
 ```json
 {
-  "plugin": ["opencode-antigravity-auth@beta"]
+  "plugin": ["@onrcvndev/auth-code-gravity@beta"]
 }
 ```
 
@@ -528,7 +545,7 @@ The correct key is `plugin` (singular):
 ### Migrating Accounts Between Machines
 
 When copying `antigravity-accounts.json` to a new machine:
-1. Ensure the plugin is installed: `"plugin": ["opencode-antigravity-auth@beta"]`
+1. Ensure the plugin is installed: `"plugin": ["@onrcvndev/auth-code-gravity@beta"]`
 2. Copy `~/.config/opencode/antigravity-accounts.json`
 3. If you get "API key missing" error, the refresh token may be invalid — re-authenticate
 
@@ -546,7 +563,7 @@ DCP creates synthetic assistant messages that lack thinking blocks. **List this 
 ```json
 {
   "plugin": [
-    "opencode-antigravity-auth@latest",
+    "@onrcvndev/auth-code-gravity@latest",
     "@tarquinen/opencode-dcp@latest"
   ]
 }
@@ -581,7 +598,7 @@ Create `~/.config/opencode/antigravity.json` for optional settings:
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/NoeFabris/opencode-antigravity-auth/main/assets/antigravity.schema.json"
+  "$schema": "https://raw.githubusercontent.com/onrcvndev/auth-code-gravity/main/assets/antigravity.schema.json"
 }
 ```
 

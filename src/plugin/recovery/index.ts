@@ -1,5 +1,5 @@
 /**
- * Session recovery module for opencode-antigravity-auth.
+ * Session recovery module for @onrcvndev/auth-code-gravity.
  * 
  * Provides recovery from:
  * - tool_result_missing: Interrupted tool executions

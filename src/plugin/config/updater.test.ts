@@ -40,14 +40,14 @@ describe("updateOpencodeConfig", () => {
     // Verify written config has correct structure
     const writtenConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
     expect(writtenConfig.$schema).toBe("https://opencode.ai/config.json");
-    expect(writtenConfig.plugin).toContain("opencode-antigravity-auth@latest");
+    expect(writtenConfig.plugin).toContain("@onrcvndev/auth-code-gravity@latest");
     expect(writtenConfig.provider?.google?.models).toBeDefined();
   });
 
   test("replaces existing google models with plugin models", async () => {
     const existingConfig = {
       $schema: "https://opencode.ai/config.json",
-      plugin: ["opencode-antigravity-auth@latest"],
+      plugin: ["@onrcvndev/auth-code-gravity@latest"],
       provider: {
         google: {
           models: {
@@ -73,7 +73,7 @@ describe("updateOpencodeConfig", () => {
   test("preserves non-google provider sections", async () => {
     const existingConfig = {
       $schema: "https://opencode.ai/config.json",
-      plugin: ["opencode-antigravity-auth@latest"],
+      plugin: ["@onrcvndev/auth-code-gravity@latest"],
       provider: {
         google: {
           models: { "old-model": {} },
@@ -102,7 +102,7 @@ describe("updateOpencodeConfig", () => {
   test("preserves $schema and other top-level config keys", async () => {
     const existingConfig = {
       $schema: "https://opencode.ai/config.json",
-      plugin: ["opencode-antigravity-auth@latest", "other-plugin"],
+      plugin: ["@onrcvndev/auth-code-gravity@latest", "other-plugin"],
       theme: "dark",
       customSetting: { nested: true },
       provider: {
@@ -134,11 +134,50 @@ describe("updateOpencodeConfig", () => {
     expect(result.success).toBe(true);
 
     const writtenConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-    expect(writtenConfig.plugin).toContain("opencode-antigravity-auth@latest");
+    expect(writtenConfig.plugin).toContain("@onrcvndev/auth-code-gravity@latest");
     expect(writtenConfig.plugin).toContain("other-plugin");
   });
 
   test("does not duplicate plugin if already present", async () => {
+    const existingConfig = {
+      plugin: ["@onrcvndev/auth-code-gravity@latest", "other-plugin"],
+      provider: {},
+    };
+    fs.writeFileSync(configPath, JSON.stringify(existingConfig));
+
+    const result = await updateOpencodeConfig({ configPath });
+
+    expect(result.success).toBe(true);
+
+    const writtenConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+    const pluginCount = writtenConfig.plugin.filter(
+      (p: string) => p.includes("@onrcvndev/auth-code-gravity")
+    ).length;
+    expect(pluginCount).toBe(1);
+  });
+
+  test("does not duplicate plugin if different version present", async () => {
+    const existingConfig = {
+      plugin: ["@onrcvndev/auth-code-gravity@beta", "other-plugin"],
+      provider: {},
+    };
+    fs.writeFileSync(configPath, JSON.stringify(existingConfig));
+
+    const result = await updateOpencodeConfig({ configPath });
+
+    expect(result.success).toBe(true);
+
+    const writtenConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+    const pluginCount = writtenConfig.plugin.filter(
+      (p: string) => p.includes("@onrcvndev/auth-code-gravity")
+    ).length;
+    // Should not add another version if one exists
+    expect(pluginCount).toBe(1);
+    // Should preserve the existing version
+    expect(writtenConfig.plugin).toContain("@onrcvndev/auth-code-gravity@beta");
+  });
+
+  test("migrates legacy package entry to scoped package name", async () => {
     const existingConfig = {
       plugin: ["opencode-antigravity-auth@latest", "other-plugin"],
       provider: {},
@@ -150,31 +189,9 @@ describe("updateOpencodeConfig", () => {
     expect(result.success).toBe(true);
 
     const writtenConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-    const pluginCount = writtenConfig.plugin.filter(
-      (p: string) => p.includes("opencode-antigravity-auth")
-    ).length;
-    expect(pluginCount).toBe(1);
-  });
-
-  test("does not duplicate plugin if different version present", async () => {
-    const existingConfig = {
-      plugin: ["opencode-antigravity-auth@beta", "other-plugin"],
-      provider: {},
-    };
-    fs.writeFileSync(configPath, JSON.stringify(existingConfig));
-
-    const result = await updateOpencodeConfig({ configPath });
-
-    expect(result.success).toBe(true);
-
-    const writtenConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-    const pluginCount = writtenConfig.plugin.filter(
-      (p: string) => p.includes("opencode-antigravity-auth")
-    ).length;
-    // Should not add another version if one exists
-    expect(pluginCount).toBe(1);
-    // Should preserve the existing version
-    expect(writtenConfig.plugin).toContain("opencode-antigravity-auth@beta");
+    expect(writtenConfig.plugin).toContain("@onrcvndev/auth-code-gravity@latest");
+    expect(writtenConfig.plugin).toContain("other-plugin");
+    expect(writtenConfig.plugin).not.toContain("opencode-antigravity-auth@latest");
   });
 
   test("writes config with proper JSON formatting (2-space indent)", async () => {
@@ -233,25 +250,28 @@ describe("updateOpencodeConfig", () => {
 
     const writtenConfig = JSON.parse(fs.readFileSync(jsoncPath, "utf-8"));
     expect(writtenConfig.plugin).toContain("other-plugin");
-    expect(writtenConfig.plugin).toContain("opencode-antigravity-auth@latest");
+    expect(writtenConfig.plugin).toContain("@onrcvndev/auth-code-gravity@latest");
     expect(writtenConfig.provider.google.region).toBe("us-central1");
     expect(writtenConfig.provider.google.models["antigravity-gemini-3-pro"]).toBeDefined();
   });
 
-  test("prefers existing opencode.jsonc when using default config path", async () => {
+  test("prefers existing config.json when using default config path", async () => {
     const opencodeDir = path.join(tempDir, "opencode");
+    const configJsonPath = path.join(opencodeDir, "config.json");
     const jsonPath = path.join(opencodeDir, "opencode.json");
     const jsoncPath = path.join(opencodeDir, "opencode.jsonc");
 
     fs.mkdirSync(opencodeDir, { recursive: true });
+    fs.writeFileSync(configJsonPath, JSON.stringify({ plugin: ["other-plugin"], provider: {} }, null, 2));
     fs.writeFileSync(jsoncPath, JSON.stringify({ plugin: ["other-plugin"], provider: {} }, null, 2));
     process.env.XDG_CONFIG_HOME = tempDir;
 
     const result = await updateOpencodeConfig();
 
     expect(result.success).toBe(true);
-    expect(result.configPath).toBe(jsoncPath);
+    expect(result.configPath).toBe(configJsonPath);
     expect(fs.existsSync(jsonPath)).toBe(false);
+    expect(fs.existsSync(configJsonPath)).toBe(true);
     expect(fs.existsSync(jsoncPath)).toBe(true);
   });
 
@@ -266,7 +286,7 @@ describe("updateOpencodeConfig", () => {
 
   test("adds $schema if missing from existing config", async () => {
     const existingConfig = {
-      plugin: ["opencode-antigravity-auth@latest"],
+      plugin: ["@onrcvndev/auth-code-gravity@latest"],
       provider: { google: {} },
     };
     fs.writeFileSync(configPath, JSON.stringify(existingConfig));
@@ -281,7 +301,7 @@ describe("updateOpencodeConfig", () => {
 
   test("preserves other google provider settings besides models", async () => {
     const existingConfig = {
-      plugin: ["opencode-antigravity-auth@latest"],
+      plugin: ["@onrcvndev/auth-code-gravity@latest"],
       provider: {
         google: {
           apiKey: "test-key",

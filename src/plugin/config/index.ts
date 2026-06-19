@@ -1,5 +1,5 @@
 /**
- * Configuration module for opencode-antigravity-auth plugin.
+ * Configuration module for @onrcvndev/auth-code-gravity plugin.
  * 
  * @example
  * ```typescript
