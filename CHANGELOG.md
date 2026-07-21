@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Added Antigravity Gemini 3.6 Flash support through the `antigravity-gemini-3.6-flash` model, including `minimal`, `low`, `medium`, and `high` thinking variants and routing to the `gemini-3.6-flash-tiered` API model.
+
 ## [1.6.0] - 2026-02-20
 
 ### Fixed

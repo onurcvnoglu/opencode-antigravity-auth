@@ -55,9 +55,9 @@ Gemini 3 models use string-based thinking levels. Available levels differ by mod
 | `minimal` | ✅ | ❌ | Minimal thinking, lowest latency |
 | `low` | ✅ | ✅ | Light thinking |
 | `medium` | ✅ | ❌ | Balanced thinking |
-| `high` | ✅ | ✅ | Maximum thinking (default) |
+| `high` | ✅ | ✅ | Maximum thinking (default for earlier Gemini 3 models) |
 
-> **Note:** The API rejects invalid levels (e.g., `"minimal"` on Pro). Gemini 3.5 Flash is configured with `low`, `medium`, and `high`.
+> **Note:** The API rejects invalid levels (e.g., `"minimal"` on Pro). Gemini 3.5 Flash is configured with `low`, `medium`, and `high`; Gemini 3.6 Flash supports all four levels and defaults to `medium`.
 
 ### Gemini 3 Pro Example
 
@@ -102,6 +102,24 @@ Gemini 3 models use string-based thinking levels. Available levels differ by mod
     "limit": { "context": 1048576, "output": 65536 },
     "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
     "variants": {
+      "low": { "thinkingLevel": "low" },
+      "medium": { "thinkingLevel": "medium" },
+      "high": { "thinkingLevel": "high" }
+    }
+  }
+}
+```
+
+### Gemini 3.6 Flash Example
+
+```json
+{
+  "antigravity-gemini-3.6-flash": {
+    "name": "Gemini 3.6 Flash (Antigravity)",
+    "limit": { "context": 1048576, "output": 65536 },
+    "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+    "variants": {
+      "minimal": { "thinkingLevel": "minimal" },
       "low": { "thinkingLevel": "low" },
       "medium": { "thinkingLevel": "medium" },
       "high": { "thinkingLevel": "high" }
@@ -177,6 +195,7 @@ Tier-suffixed model names are still accepted:
 - `antigravity-gemini-3-pro-low`
 - `antigravity-gemini-3-pro-high`
 - `antigravity-gemini-3.5-flash-medium`
+- `antigravity-gemini-3.6-flash-high`
 - `gemini-3-pro-low`
 - `gemini-3-flash-medium`
 

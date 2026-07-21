@@ -6,11 +6,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![X (Twitter)](https://img.shields.io/badge/X-@dopesalmon-000000?style=flat&logo=x)](https://x.com/dopesalmon)
 
-Enable Opencode to authenticate against **Antigravity** (Google's IDE) via OAuth so you can use Antigravity rate limits and access models like `gemini-3.1-pro` and `claude-opus-4-6-thinking` with your Google credentials.
+Enable Opencode to authenticate against **Antigravity** (Google's IDE) via OAuth so you can use Antigravity rate limits and access models like `gemini-3.6-flash` and `claude-opus-4-6-thinking` with your Google credentials.
 
 ## What You Get
 
-- **Claude Opus 4.6, Sonnet 4.6** and **Gemini 3.1 Pro/Flash** via Google OAuth
+- **Claude Opus 4.6, Sonnet 4.6** and **Gemini 3.6 Flash / 3.1 Pro** via Google OAuth
 - **Multi-account support** — add multiple Google accounts, auto-rotates when rate-limited
 - **Antigravity-only model config** — OpenCode model picker is kept to `antigravity-*` models
 - **Thinking models** — extended thinking for Claude and Gemini 3 with configurable budgets
@@ -116,6 +116,7 @@ opencode run "Hello" --model=google/antigravity-claude-opus-4-6-thinking --varia
 | `antigravity-gemini-3.1-pro` | low, high | Gemini 3.1 Pro with thinking (rollout-dependent) |
 | `antigravity-gemini-3-flash` | minimal, low, medium, high | Gemini 3 Flash with thinking |
 | `antigravity-gemini-3.5-flash` | low, medium, high | Gemini 3.5 Flash with thinking |
+| `antigravity-gemini-3.6-flash` | minimal, low, medium, high | Gemini 3.6 Flash with thinking (medium default) |
 | `antigravity-claude-sonnet-4-6` | — | Claude Sonnet 4.6 |
 | `antigravity-claude-opus-4-6-thinking` | low, max | Claude Opus 4.6 with extended thinking |
 
@@ -178,6 +179,17 @@ Add this to your `~/.config/opencode/config.json`:
           "limit": { "context": 1048576, "output": 65536 },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
           "variants": {
+            "low": { "thinkingLevel": "low" },
+            "medium": { "thinkingLevel": "medium" },
+            "high": { "thinkingLevel": "high" }
+          }
+        },
+        "antigravity-gemini-3.6-flash": {
+          "name": "Gemini 3.6 Flash (Antigravity)",
+          "limit": { "context": 1048576, "output": 65536 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "variants": {
+            "minimal": { "thinkingLevel": "minimal" },
             "low": { "thinkingLevel": "low" },
             "medium": { "thinkingLevel": "medium" },
             "high": { "thinkingLevel": "high" }

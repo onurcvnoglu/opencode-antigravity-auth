@@ -18,6 +18,7 @@ const MODELS: ModelTest[] = [
   { model: "google/antigravity-gemini-3-pro-low", category: "antigravity-gemini" },
   { model: "google/antigravity-gemini-3-pro-high", category: "antigravity-gemini" },
   { model: "google/antigravity-gemini-3-flash", category: "antigravity-gemini" },
+  { model: "google/antigravity-gemini-3.6-flash", category: "antigravity-gemini" },
   { model: "google/antigravity-gemini-3.5-flash-low", category: "antigravity-gemini" },
   { model: "google/antigravity-gemini-3.5-flash-medium", category: "antigravity-gemini" },
   { model: "google/antigravity-gemini-3.5-flash-high", category: "antigravity-gemini" },

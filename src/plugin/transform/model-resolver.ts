@@ -66,6 +66,7 @@ const GEMINI_3_PRO_REGEX = /^gemini-3(?:\.\d+)?-pro/i;
 const GEMINI_3_FLASH_REGEX = /^gemini-3(?:\.\d+)?-flash/i;
 const GEMINI_35_FLASH_REGEX = /^gemini-3\.5-flash$/i;
 const GEMINI_35_FLASH_API_TIER_REGEX = /-(extra-low|low|medium|high)$/i;
+const GEMINI_36_FLASH_REGEX = /^gemini-3\.6-flash(?:-tiered)?$/i;
 
 // ANTIGRAVITY_ONLY_MODELS removed - all models now default to antigravity
 
@@ -150,6 +151,14 @@ function resolveGemini35FlashApiModel(model: string, level?: ThinkingTier | stri
   return `${baseModel}-${apiLevel}`;
 }
 
+function resolveGemini36FlashApiModel(model: string): string {
+  if (!GEMINI_36_FLASH_REGEX.test(model)) {
+    return model;
+  }
+
+  return model.toLowerCase().endsWith("-tiered") ? model : `${model}-tiered`;
+}
+
 /**
  * Resolves a model name with optional tier suffix and quota prefix to its actual API model name
  * and corresponding thinking configuration.
@@ -210,6 +219,9 @@ export function resolveModelWithTier(requestedModel: string, options: ModelResol
     : MODEL_ALIASES[modelWithoutQuota] || MODEL_ALIASES[baseName] || baseName;
 
   let resolvedModel = resolveGemini35FlashApiModel(actualModel, tier);
+  if (quotaPreference === "antigravity") {
+    resolvedModel = resolveGemini36FlashApiModel(resolvedModel);
+  }
 
   const isThinking = isThinkingCapableModel(resolvedModel);
 
@@ -233,7 +245,7 @@ export function resolveModelWithTier(requestedModel: string, options: ModelResol
     if (isEffectiveGemini3) {
       return {
         actualModel: resolvedModel,
-        thinkingLevel: "low",
+        thinkingLevel: GEMINI_36_FLASH_REGEX.test(resolvedModel) ? "medium" : "low",
         isThinkingModel: true,
         quotaPreference,
         explicitQuota,
@@ -356,15 +368,19 @@ export function resolveModelForHeaderStyle(
   if (headerStyle === "gemini-cli") {
     let transformedModel = requestedModel
       .replace(/^antigravity-/i, "")
+      .replace(/-tiered$/i, "")
       .replace(/-(low|medium|high)$/i, "");
 
     const hasPreviewSuffix = /-preview($|-)/i.test(transformedModel);
-    if (!hasPreviewSuffix) {
+    const isGemini36Flash = GEMINI_36_FLASH_REGEX.test(transformedModel);
+    if (!hasPreviewSuffix && !isGemini36Flash) {
       transformedModel = `${transformedModel}-preview`;
     }
-    
+
+    const resolved = resolveModelWithTier(transformedModel, { cli_first: true });
     return {
-      ...resolveModelWithTier(transformedModel),
+      ...resolved,
+      actualModel: transformedModel,
       quotaPreference: "gemini-cli",
     };
   }
