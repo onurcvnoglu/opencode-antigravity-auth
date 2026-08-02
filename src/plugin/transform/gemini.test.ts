@@ -1460,6 +1460,68 @@ describe("transform/gemini", () => {
   });
 
   describe("applyGeminiTransforms - full integration", () => {
+    it("normalizes array schemas in existing functionDeclarations", () => {
+      const payload: RequestPayload = {
+        contents: [],
+        tools: [
+          {
+            functionDeclarations: [
+              {
+                name: "change_signature",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    operations: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          order: {
+                            items: { type: "string" },
+                            anyOf: [{ type: "array" }],
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                name: "find_references",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    kinds: {
+                      items: { anyOf: [{ type: "string" }] },
+                      anyOf: [{ type: "array" }],
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      };
+
+      const result = applyGeminiTransforms(payload, { model: "gemini-3.6-flash" });
+
+      expect(result.toolDebugMissing).toBe(0);
+      const tools = payload.tools as Array<Record<string, unknown>>;
+      const declarations = tools[0]!.functionDeclarations as Array<Record<string, unknown>>;
+      const changeSignatureParams = declarations[0]!.parameters as Record<string, unknown>;
+      const changeSignatureProps = changeSignatureParams.properties as Record<string, Record<string, unknown>>;
+      const operations = changeSignatureProps["operations"]!;
+      const operationItems = operations.items as Record<string, unknown>;
+      const operationProps = operationItems.properties as Record<string, Record<string, unknown>>;
+      const findReferencesParams = declarations[1]!.parameters as Record<string, unknown>;
+      const findReferencesProps = findReferencesParams.properties as Record<string, Record<string, unknown>>;
+
+      expect(changeSignatureParams.type).toBe("OBJECT");
+      expect(operations.type).toBe("ARRAY");
+      expect(operationProps["order"]!.type).toBe("ARRAY");
+      expect(findReferencesProps["kinds"]!.type).toBe("ARRAY");
+    });
+
     it("wraps tools in functionDeclarations after normalization", () => {
       const payload: RequestPayload = {
         contents: [],

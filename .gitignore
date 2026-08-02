@@ -45,3 +45,5 @@ CLIProxyAPI/
 LLM-API-Key-Proxy/
 opencode/
 opencode-better-antigravity-auth/
+.serena/*
+.playwright-mcp/*

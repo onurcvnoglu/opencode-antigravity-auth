@@ -253,17 +253,6 @@ export function normalizeGeminiTools(
 
     const newTool = { ...t };
 
-    const schemaCandidates = [
-      (newTool.function as Record<string, unknown> | undefined)?.input_schema,
-      (newTool.function as Record<string, unknown> | undefined)?.parameters,
-      (newTool.function as Record<string, unknown> | undefined)?.inputSchema,
-      (newTool.custom as Record<string, unknown> | undefined)?.input_schema,
-      (newTool.custom as Record<string, unknown> | undefined)?.parameters,
-      newTool.parameters,
-      newTool.input_schema,
-      newTool.inputSchema,
-    ].filter(Boolean);
-
     const placeholderSchema: Record<string, unknown> = {
       type: "OBJECT",
       properties: {
@@ -274,6 +263,51 @@ export function normalizeGeminiTools(
       },
       required: ["_placeholder"],
     };
+
+    if (Array.isArray(newTool.functionDeclarations)) {
+      let missingDeclarationSchemas = 0;
+      const normalizedDeclarations = newTool.functionDeclarations.map((declaration) => {
+        const decl = declaration && typeof declaration === "object" && !Array.isArray(declaration)
+          ? declaration as Record<string, unknown>
+          : {};
+        const schemaCandidate =
+          decl.parameters ||
+          decl.parametersJsonSchema ||
+          decl.input_schema ||
+          decl.inputSchema;
+        const hasSchema =
+          schemaCandidate &&
+          typeof schemaCandidate === "object" &&
+          !Array.isArray(schemaCandidate);
+
+        if (!hasSchema) {
+          toolDebugMissing += 1;
+          missingDeclarationSchemas += 1;
+        }
+
+        return {
+          ...decl,
+          parameters: hasSchema ? toGeminiSchema(schemaCandidate) : placeholderSchema,
+        };
+      });
+      newTool.functionDeclarations = normalizedDeclarations;
+
+      toolDebugSummaries.push(
+        `idx=${toolIndex}, functionDeclarations=${normalizedDeclarations.length}, missingSchemas=${missingDeclarationSchemas}`,
+      );
+      return newTool;
+    }
+
+    const schemaCandidates = [
+      (newTool.function as Record<string, unknown> | undefined)?.input_schema,
+      (newTool.function as Record<string, unknown> | undefined)?.parameters,
+      (newTool.function as Record<string, unknown> | undefined)?.inputSchema,
+      (newTool.custom as Record<string, unknown> | undefined)?.input_schema,
+      (newTool.custom as Record<string, unknown> | undefined)?.parameters,
+      newTool.parameters,
+      newTool.input_schema,
+      newTool.inputSchema,
+    ].filter(Boolean);
 
     let schema = schemaCandidates[0] as Record<string, unknown> | undefined;
     const schemaObjectOk = schema && typeof schema === "object" && !Array.isArray(schema);
