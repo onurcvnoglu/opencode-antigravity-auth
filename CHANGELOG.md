@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.4] - 2026-08-02
+
+### Fixed
+
+- **Schema Validation** - Standardized array schema handling (`toGeminiSchema` & `cleanJSONSchemaForAntigravity`) to automatically enforce `type: "ARRAY"` whenever `items` is present in tool parameter definitions. Resolves Gemini API `400 Bad Request` errors (`field predicate failed: $type == Type.ARRAY`).
+
 ## Unreleased
 
 ### Added
