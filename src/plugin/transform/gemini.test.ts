@@ -778,6 +778,39 @@ describe("transform/gemini", () => {
       expect(itemProps["id"]!.type).toBe("NUMBER");
     });
 
+    it("ensures type is ARRAY when items property is present without explicit array type", () => {
+      const schema = {
+        properties: {
+          include: {
+            description: "Include list",
+            items: { type: "string" },
+          },
+          kinds: {
+            items: { type: "string" },
+          },
+          operations: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                order: {
+                  items: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+      };
+      const result = toGeminiSchema(schema) as any;
+      expect(result.properties.include.type).toBe("ARRAY");
+      expect(result.properties.include.items.type).toBe("STRING");
+      expect(result.properties.kinds.type).toBe("ARRAY");
+      expect(result.properties.kinds.items.type).toBe("STRING");
+      expect(result.properties.operations.type).toBe("ARRAY");
+      expect(result.properties.operations.items.properties.order.type).toBe("ARRAY");
+      expect(result.properties.operations.items.properties.order.items.type).toBe("STRING");
+    });
+
     it("transforms anyOf schemas", () => {
       const schema = {
         anyOf: [

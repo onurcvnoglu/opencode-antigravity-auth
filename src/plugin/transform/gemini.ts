@@ -114,8 +114,14 @@ export function toGeminiSchema(schema: unknown): unknown {
     }
   }
 
-  // Issue #80: Ensure array schemas have an 'items' field
-  // Gemini API requires: "parameters.properties[X].items: missing field"
+  // Issue #80 & Array validation: Ensure array schemas have type: "ARRAY" and an 'items' field
+  // Gemini API requires:
+  // 1. "parameters.properties[X].items: missing field" (when type == ARRAY but items missing)
+  // 2. "parameters.properties[X].items: field predicate failed: $type == Type.ARRAY" (when items present but type != ARRAY)
+  if (result.items && typeof result.items === "object" && result.type !== "ARRAY") {
+    result.type = "ARRAY";
+  }
+
   if (result.type === "ARRAY" && !result.items) {
     result.items = { type: "STRING" };
   }

@@ -651,6 +651,39 @@ function addEmptySchemaPlaceholder(schema: any): any {
 }
 
 /**
+ * Phase 3c: Ensures array schemas have type: "array" when items is present,
+ * and items field when type is "array".
+ */
+function normalizeArrayTypesAndItems(schema: any): any {
+  if (!schema || typeof schema !== "object") {
+    return schema;
+  }
+
+  if (Array.isArray(schema)) {
+    return schema.map(item => normalizeArrayTypesAndItems(item));
+  }
+
+  let result: any = { ...schema };
+
+  if (result.items && typeof result.items === "object" && result.type !== "array") {
+    result.type = "array";
+  }
+
+  if (result.type === "array" && (!result.items || typeof result.items !== "object")) {
+    result.items = { type: "string" };
+  }
+
+  // Recursively process nested objects
+  for (const [key, value] of Object.entries(result)) {
+    if (typeof value === "object" && value !== null) {
+      result[key] = normalizeArrayTypesAndItems(value);
+    }
+  }
+
+  return result;
+}
+
+/**
  * Cleans a JSON schema for Antigravity API compatibility.
  * Transforms unsupported features into description hints while preserving semantic information.
  * 
@@ -678,6 +711,7 @@ export function cleanJSONSchemaForAntigravity(schema: any): any {
   // Phase 3: Cleanup
   result = removeUnsupportedKeywords(result);
   result = cleanupRequiredFields(result);
+  result = normalizeArrayTypesAndItems(result);
 
   // Phase 4: Add placeholder for empty object schemas
   result = addEmptySchemaPlaceholder(result);
